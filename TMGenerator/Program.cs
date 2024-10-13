@@ -52,11 +52,11 @@ namespace TMGenerator
             Console.WriteLine("\nFeatureReduceAggressionForFCOM\n");
             if (Settings.FeatureReduceAggressionForFCOM)
             {
-                foreach (var oldCreature in state.LoadOrder.PriorityOrder.WinningOverrides<ICreatureGetter>())
+                foreach (var oldCreature in state.LoadOrder.PriorityOrder.Creature().WinningContextOverrides())
                 {
                     try
                     {
-                        Console.WriteLine($"oldCreature.FormKey.ModKey.Name:{oldCreature.FormKey.ModKey.Name}");
+                        Console.WriteLine($"oldCreature.FormKey.ModKey.Name:{oldCreature.Record.FormKey.ModKey.Name}");
                         if (
                             !new List<string>()
                                 {
@@ -64,26 +64,29 @@ namespace TMGenerator
                                     "Oscuro's_Oblivion_Overhaul",
                                     "Oblivion WarCry EV",
                                 }
-                                .Contains(oldCreature.FormKey.ModKey.Name))
+                                .Contains(oldCreature.Record.FormKey.ModKey.Name))
                         {
                             Console.WriteLine($"Skipping because record is not in FCOM.");
                             continue;
                         }
 
-                        if (oldCreature.AIData == null)
+                        if (oldCreature.Record.AIData == null)
                         {
                             Console.WriteLine($"Skipping because AIData is null.");
                             continue;
                         }
-
-                        var newCreature = oldCreature.DeepCopy();
-                        // newCreature.AIData!.Aggression = 10; //TODO
-                        // state.PatchMod.Creatures.Set(newCreature);
+                        var newCreature = oldCreature.Record.DeepCopy();
+                        newCreature.AIData!.Aggression = 10; //TODO
+                        state.PatchMod.Creatures.Set(newCreature);
                         changeCount++;
                     }
                     catch (Exception ex)
                     {
-                        throw RecordException.Enrich(ex, oldCreature);
+                        throw RecordException.Enrich(ex, 
+                            oldCreature.Record.FormKey,
+                            oldCreature.Record.GetType(),
+                            oldCreature.Record.EditorID, 
+                            oldCreature.ModKey);
                     }
                 }
             }
